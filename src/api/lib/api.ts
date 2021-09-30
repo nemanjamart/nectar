@@ -7,10 +7,11 @@ import { identity, isNil } from 'ramda';
 import { IUserData } from './bootstrap/types';
 import { ExportService } from './export';
 import { GraphicsService } from './graphics';
-import { LibrariesService } from './libraries/libraries';
+import { LibrariesService } from './libraries';
+import { MetricsService } from './metrics';
 import { ApiTargets } from './models';
 import { ReferenceService } from './reference';
-import { SearchService } from './search/search';
+import { SearchService } from './search';
 import { IServiceConfig } from './service';
 import { UserService } from './user/user';
 import { VaultService } from './vault';
@@ -23,6 +24,7 @@ export class Adsapi {
   public vault: VaultService;
   public graphics: GraphicsService;
   public export: ExportService;
+  public metrics: MetricsService;
 
   constructor(config?: IServiceConfig) {
     this.search = new SearchService(config);
@@ -32,6 +34,7 @@ export class Adsapi {
     this.vault = new VaultService(config);
     this.graphics = new GraphicsService(config);
     this.export = new ExportService(config);
+    this.metrics = new MetricsService(config);
   }
 
   public static bootstrap(config: IServiceConfig = {}): Promise<Result<IUserData, Error>> {
