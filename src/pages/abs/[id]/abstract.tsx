@@ -15,7 +15,7 @@ import { normalizeURLParams } from 'src/utils';
 export interface IAbstractPageProps {
   doc?: IDocsEntity;
   error?: string;
-  params: {
+  params?: {
     q: string;
     fl: string[];
     sort: SolrSort[];
