@@ -1,8 +1,10 @@
 import AdsApi, { IADSApiSearchParams, IDocsEntity, IUserData } from '@api';
 import { AbsLayout } from '@components/Layout/AbsLayout';
+import { SimpleResultList } from '@components/ResultList';
 import { GetServerSideProps, NextPage } from 'next';
+import { useRouter } from 'next/router';
 import React from 'react';
-import { getDocument, normalizeURLParams, getHasGraphics, getHasMetrics } from 'src/utils';
+import { getDocument, getHasGraphics, getHasMetrics, normalizeURLParams } from 'src/utils';
 export interface ICitationsPageProps {
   docs: IDocsEntity[];
   originalDoc: IDocsEntity;
@@ -11,10 +13,18 @@ export interface ICitationsPageProps {
   hasMetrics: boolean;
 }
 
+const getQueryParams = (id: string | string[]): IADSApiSearchParams => {
+  const idStr = Array.isArray(id) ? id[0] : id;
+  return {
+    q: `similar(identifier:${idStr})`,
+    fl: ['bibcode', 'title', 'author', '[fields author=3]', 'author_count', 'pubdate'],
+    sort: ['score desc'],
+  };
+};
+
 const SimilarPage: NextPage<ICitationsPageProps> = (props: ICitationsPageProps) => {
   const { docs, originalDoc, error, hasGraphics, hasMetrics } = props;
-
-  console.log(error);
+  const { query } = useRouter();
 
   return (
     <AbsLayout doc={originalDoc} hasGraphics={hasGraphics} hasMetrics={hasMetrics}>
@@ -27,7 +37,7 @@ const SimilarPage: NextPage<ICitationsPageProps> = (props: ICitationsPageProps) 
         {error ? (
           <div className="flex items-center justify-center w-full h-full text-xl">{error}</div>
         ) : (
-          <>{/* <ResultList docs={docs} hideCheckboxes={true} showActions={false} /> */}</>
+          <SimpleResultList numFound={docs.length} query={getQueryParams(query.id)} docs={docs} hideCheckboxes={true} />
         )}
       </article>
     </AbsLayout>

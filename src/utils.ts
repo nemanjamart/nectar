@@ -1,5 +1,5 @@
 import AdsApi, { IDocsEntity, IUserData } from '@api';
-import { MetricsResponseKey, CitationsStatsKey, BasicStatsKey } from '@api/lib/metrics/types';
+import { BasicStatsKey, CitationsStatsKey, MetricsResponseKey } from '@api/lib/metrics/types';
 import { abstractPageNavDefaultQueryFields } from '@components/AbstractSideNav/model';
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next';
 import { ParsedUrlQuery } from 'querystring';
@@ -39,6 +39,7 @@ export interface IOriginalDoc {
   error?: string;
   notFound?: boolean;
   doc?: IDocsEntity;
+  numFound?: number;
 }
 
 export const getDocument = async (api: AdsApi, id: string): Promise<IOriginalDoc> => {
@@ -79,7 +80,7 @@ export const getDocument = async (api: AdsApi, id: string): Promise<IOriginalDoc
     ? { error: 'Unable to get document' }
     : result.value.numFound === 0
     ? { notFound: true }
-    : { doc: result.value.docs[0] };
+    : { doc: result.value.docs[0], numFound: result.value.numFound };
 };
 
 export const getHasGraphics = async (api: AdsApi, bibcode: string): Promise<boolean> => {

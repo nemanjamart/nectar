@@ -1,9 +1,11 @@
 import AdsApi, { IADSApiSearchParams, IDocsEntity, IUserData } from '@api';
 import { AbsLayout } from '@components/Layout/AbsLayout';
+import { SimpleResultList } from '@components/ResultList';
 import axios from 'axios';
 import { GetServerSideProps, NextPage } from 'next';
+import { useRouter } from 'next/router';
 import React from 'react';
-import { getDocument, normalizeURLParams, getHasGraphics, getHasMetrics } from 'src/utils';
+import { getDocument, getHasGraphics, getHasMetrics, normalizeURLParams } from 'src/utils';
 export interface ICitationsPageProps {
   docs: IDocsEntity[];
   originalDoc: IDocsEntity;
@@ -12,8 +14,18 @@ export interface ICitationsPageProps {
   hasMetrics: boolean;
 }
 
+const getQueryParams = (id: string | string[]): IADSApiSearchParams => {
+  const idStr = Array.isArray(id) ? id[0] : id;
+  return {
+    q: `citations(identifier:${idStr})`,
+    fl: ['bibcode', 'title', 'author', '[fields author=3]', 'author_count', 'pubdate'],
+    sort: ['date desc'],
+  };
+};
+
 const CitationsPage: NextPage<ICitationsPageProps> = (props: ICitationsPageProps) => {
   const { docs, originalDoc, error, hasGraphics, hasMetrics } = props;
+  const { query } = useRouter();
 
   return (
     <AbsLayout doc={originalDoc} hasGraphics={hasGraphics} hasMetrics={hasMetrics}>
@@ -26,7 +38,12 @@ const CitationsPage: NextPage<ICitationsPageProps> = (props: ICitationsPageProps
         {error ? (
           <div className="flex items-center justify-center w-full h-full text-xl">{error}</div>
         ) : (
-          <>{/* <ResultList docs={docs} hideCheckboxes={true} showActions={false} /> */}</>
+          <SimpleResultList
+            query={getQueryParams(query.id)}
+            numFound={originalDoc['[citations]'].num_citations}
+            docs={docs}
+            hideCheckboxes={true}
+          />
         )}
       </article>
     </AbsLayout>
@@ -41,13 +58,8 @@ export const getServerSideProps: GetServerSideProps<ICitationsPageProps> = async
     session: { userData: IUserData };
   };
   const userData = request.session.userData;
-  const params: IADSApiSearchParams = {
-    q: `citations(identifier:${query.id})`,
-    fl: ['bibcode', 'title', 'author', '[fields author=3]', 'author_count', 'pubdate'],
-    sort: ['date desc'],
-  };
   const adsapi = new AdsApi({ token: userData.access_token });
-  const mainResult = await adsapi.search.query(params);
+  const mainResult = await adsapi.search.query(getQueryParams(query.id));
   const originalDoc = await getDocument(adsapi, query.id);
   const hasGraphics =
     !originalDoc.notFound && !originalDoc.error ? await getHasGraphics(adsapi, originalDoc.doc.bibcode) : false;

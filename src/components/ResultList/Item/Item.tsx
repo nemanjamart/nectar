@@ -12,7 +12,7 @@ interface IItemProps {
   hideCheckbox: boolean;
   set?: boolean;
   clear?: boolean;
-  onSet: (check: boolean) => void;
+  onSet?: (check: boolean) => void;
 }
 
 export const Item = (props: IItemProps): React.ReactElement => {
